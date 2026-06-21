@@ -124,7 +124,7 @@ export default function AccountForm({ account, onSave, onDelete, onClose }: Acco
               type="text"
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
-              placeholder="e.g. Commonwealth Bank"
+              placeholder="e.g. Bank name"
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
             />
           </div>

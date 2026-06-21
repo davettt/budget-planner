@@ -259,7 +259,7 @@ export default function ScenarioBuilder({
           type="text"
           value={scenarioName}
           onChange={(e) => setScenarioName(e.target.value)}
-          placeholder="e.g. House Purchase in Wollongong"
+          placeholder="e.g. New home purchase"
           className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
         />
       </div>
@@ -290,7 +290,7 @@ export default function ScenarioBuilder({
                   step="1000"
                   value={purchasePrice}
                   onChange={(e) => setPurchasePrice(e.target.value)}
-                  placeholder="e.g. 900000"
+                  placeholder="e.g. 750000"
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                 />
               </div>
@@ -303,7 +303,7 @@ export default function ScenarioBuilder({
                   step="1000"
                   value={deposit}
                   onChange={(e) => setDeposit(e.target.value)}
-                  placeholder="e.g. 180000"
+                  placeholder="e.g. 150000"
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                 />
               </div>
@@ -649,7 +649,7 @@ export default function ScenarioBuilder({
             Upfront / One-Off Costs
           </p>
           <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
-            One-time costs like stamp duty, conveyancing, bond cleans, etc.
+            One-time costs like application fees, moving costs, setup costs, etc.
           </p>
         </div>
         <div className="border-t border-slate-100 px-4 pt-3 pb-4 dark:border-slate-700">
@@ -693,7 +693,7 @@ export default function ScenarioBuilder({
               type="text"
               value={oneOffName}
               onChange={(e) => setOneOffName(e.target.value)}
-              placeholder="e.g. Stamp duty"
+              placeholder="e.g. Application fee"
               className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
             />
             <input

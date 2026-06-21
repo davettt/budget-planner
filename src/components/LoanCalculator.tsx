@@ -104,7 +104,7 @@ export default function LoanCalculator({
             step="1000"
             value={purchasePrice}
             onChange={(e) => setPurchasePrice(e.target.value)}
-            placeholder="e.g. 900000"
+            placeholder="e.g. 750000"
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
           />
         </div>
@@ -117,7 +117,7 @@ export default function LoanCalculator({
             step="1000"
             value={deposit}
             onChange={(e) => setDeposit(e.target.value)}
-            placeholder="e.g. 180000"
+            placeholder="e.g. 150000"
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
           />
         </div>
@@ -232,7 +232,7 @@ export default function LoanCalculator({
                     type="text"
                     value={scenarioName}
                     onChange={(e) => setScenarioName(e.target.value)}
-                    placeholder="Scenario name, e.g. 'House in Manly'"
+                    placeholder="Scenario name, e.g. 'New home purchase'"
                     className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                     autoFocus
                     onKeyDown={(e) => {

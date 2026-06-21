@@ -40,7 +40,7 @@
   - Optional loan/mortgage calculator with auto-populated repayment
   - Budget items that would change (mark existing expenses/income as stopping)
   - New recurring expenses with frequency conversion
-  - Upfront/one-off costs (stamp duty, conveyancing, etc.)
+  - Upfront/one-off costs (application fees, moving costs, setup costs, etc.)
   - Live projection showing current surplus → new ongoing surplus + upfront costs
 - Edit saved scenarios from the Saved Scenarios tab (loads back into Scenario Builder)
 - Subcategory display in brackets next to category name in Budget expense table
