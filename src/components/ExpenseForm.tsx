@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import type { Expense, Category, Frequency, EntryMode } from '../types';
+import { useDialog } from '../utils/useDialog';
 
 import ConfirmDialog from './ConfirmDialog';
 
@@ -56,6 +57,7 @@ export default function ExpenseForm({
   const [endDate, setEndDate] = useState(expense?.endDate || '');
   const [statementPeriod, setStatementPeriod] = useState(expense?.statementPeriod || '');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { dialogRef, titleId } = useDialog(onClose);
 
   const handleModeChange = (newMode: EntryMode) => {
     setMode(newMode);
@@ -104,10 +106,14 @@ export default function ExpenseForm({
       onMouseDown={onClose}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+        <h2 id={titleId} className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
           {expense ? 'Edit Expense' : 'Add Expense'}
         </h2>
 
@@ -132,10 +138,14 @@ export default function ExpenseForm({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+            <label
+              htmlFor="expense-category"
+              className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+            >
               Category
             </label>
             <select
+              id="expense-category"
               value={categoryId}
               onChange={(e) => {
                 setCategoryId(e.target.value);
@@ -153,10 +163,14 @@ export default function ExpenseForm({
 
           {selectedCategory && selectedCategory.subcategories.length > 0 && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="expense-subcategory"
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Subcategory (optional)
               </label>
               <select
+                id="expense-subcategory"
                 value={subcategory}
                 onChange={(e) => setSubcategory(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
@@ -172,7 +186,10 @@ export default function ExpenseForm({
           )}
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+            <label
+              htmlFor="expense-name"
+              className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+            >
               {mode === 'category-total'
                 ? 'Description (optional)'
                 : mode === 'quick-estimate'
@@ -180,6 +197,7 @@ export default function ExpenseForm({
                   : 'Name'}
             </label>
             <input
+              id="expense-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -197,10 +215,14 @@ export default function ExpenseForm({
 
           {mode === 'category-total' && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="expense-statement-period"
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Statement Period
               </label>
               <input
+                id="expense-statement-period"
                 type="month"
                 value={statementPeriod}
                 onChange={(e) => setStatementPeriod(e.target.value)}
@@ -211,7 +233,10 @@ export default function ExpenseForm({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="expense-amount"
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 {mode === 'category-total'
                   ? 'Total Amount'
                   : mode === 'quick-estimate'
@@ -219,6 +244,7 @@ export default function ExpenseForm({
                     : 'Amount'}
               </label>
               <input
+                id="expense-amount"
                 type="number"
                 step="0.01"
                 min="0"
@@ -231,10 +257,14 @@ export default function ExpenseForm({
             </div>
             {mode !== 'category-total' && (
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                <label
+                  htmlFor="expense-frequency"
+                  className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+                >
                   Frequency
                 </label>
                 <select
+                  id="expense-frequency"
                   value={frequency}
                   onChange={(e) => setFrequency(e.target.value as Frequency)}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
@@ -260,10 +290,14 @@ export default function ExpenseForm({
           {mode !== 'category-total' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                <label
+                  htmlFor="expense-start-date"
+                  className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+                >
                   Start Date
                 </label>
                 <input
+                  id="expense-start-date"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
@@ -271,10 +305,14 @@ export default function ExpenseForm({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                <label
+                  htmlFor="expense-end-date"
+                  className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+                >
                   End Date (optional)
                 </label>
                 <input
+                  id="expense-end-date"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import type { Income, Frequency } from '../types';
+import { useDialog } from '../utils/useDialog';
 
 import ConfirmDialog from './ConfirmDialog';
 
@@ -30,6 +31,7 @@ export default function IncomeForm({ income, onSave, onDelete, onClose }: Income
   );
   const [endDate, setEndDate] = useState(income?.endDate || '');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { dialogRef, titleId } = useDialog(onClose);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,19 +56,27 @@ export default function IncomeForm({ income, onSave, onDelete, onClose }: Income
       onMouseDown={onClose}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-5 text-lg font-semibold text-slate-800 dark:text-slate-100">
+        <h2 id={titleId} className="mb-5 text-lg font-semibold text-slate-800 dark:text-slate-100">
           {income ? 'Edit Income' : 'Add Income'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+            <label
+              htmlFor="income-name"
+              className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+            >
               Name
             </label>
             <input
+              id="income-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -78,10 +88,14 @@ export default function IncomeForm({ income, onSave, onDelete, onClose }: Income
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="income-amount"
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Amount
               </label>
               <input
+                id="income-amount"
                 type="number"
                 step="0.01"
                 min="0"
@@ -92,10 +106,14 @@ export default function IncomeForm({ income, onSave, onDelete, onClose }: Income
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="income-frequency"
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Frequency
               </label>
               <select
+                id="income-frequency"
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value as Frequency)}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
@@ -122,6 +140,7 @@ export default function IncomeForm({ income, onSave, onDelete, onClose }: Income
             {isGross && (
               <div className="flex items-center gap-1">
                 <input
+                  aria-label="Tax rate percent"
                   type="number"
                   step="0.1"
                   min="0"
@@ -138,10 +157,14 @@ export default function IncomeForm({ income, onSave, onDelete, onClose }: Income
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="income-start-date"
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Start Date
               </label>
               <input
+                id="income-start-date"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
@@ -149,10 +172,14 @@ export default function IncomeForm({ income, onSave, onDelete, onClose }: Income
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="income-end-date"
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 End Date (optional)
               </label>
               <input
+                id="income-end-date"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}

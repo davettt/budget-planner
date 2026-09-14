@@ -17,6 +17,7 @@ import {
   saveNetWorthHistory,
   readJSON,
   writeJSON,
+  writeJSONBatch,
   withLock,
 } from './data.js';
 
@@ -90,6 +91,173 @@ const SETTINGS_FIELDS = [
   'theme',
   'financialYearStartMonth',
 ];
+
+const BACKUP_VERSION = '1.0.0';
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const VALID_ENTRY_MODES = new Set(['individual', 'category-total', 'quick-estimate']);
+const VALID_THEMES = new Set(['light', 'dark', 'system']);
+const VALID_PERIODS = new Set(['weekly', 'fortnightly', 'monthly', 'annually']);
+
+function isRecord(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isFiniteNumber(value, min = -Infinity, max = Infinity) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
+}
+
+function isString(value, max = 200) {
+  return typeof value === 'string' && value.length > 0 && value.length <= max;
+}
+
+function isLoanDetails(value) {
+  return (
+    value === null ||
+    (isRecord(value) &&
+      isFiniteNumber(value.purchasePrice, 0) &&
+      isFiniteNumber(value.deposit, 0) &&
+      isFiniteNumber(value.interestRate, 0, 100) &&
+      isFiniteNumber(value.termYears, 0, 100) &&
+      VALID_FREQUENCIES.has(value.repaymentFrequency) &&
+      value.repaymentFrequency !== 'one-off')
+  );
+}
+
+function isScenarioExpense(value) {
+  return (
+    isRecord(value) &&
+    isString(value.name) &&
+    isFiniteNumber(value.amount, 0) &&
+    VALID_FREQUENCIES.has(value.frequency) &&
+    isString(value.categoryId)
+  );
+}
+
+function validateBackup(data) {
+  if (!isRecord(data) || data.version !== BACKUP_VERSION) return 'Unsupported backup version';
+  const collections = [
+    'accounts',
+    'income',
+    'expenses',
+    'categories',
+    'scenarios',
+    'networthHistory',
+  ];
+  if (collections.some((key) => !Array.isArray(data[key]))) return 'Backup collections are missing';
+  if (!isRecord(data.settings)) return 'Backup settings are invalid';
+  if (collections.some((key) => data[key].length > 10000))
+    return 'Backup contains too many records';
+
+  if (
+    !data.accounts.every(
+      (a) =>
+        isRecord(a) &&
+        isString(a.id) &&
+        isString(a.name) &&
+        VALID_ACCOUNT_TYPES.has(a.type) &&
+        isFiniteNumber(a.balance) &&
+        Array.isArray(a.balanceHistory) &&
+        a.balanceHistory.every(
+          (b) => isRecord(b) && ISO_DATE.test(b.date) && isFiniteNumber(b.balance),
+        ),
+    )
+  )
+    return 'Backup accounts are invalid';
+  if (
+    !data.income.every(
+      (i) =>
+        isRecord(i) &&
+        isString(i.id) &&
+        isString(i.name) &&
+        isFiniteNumber(i.amount, 0) &&
+        VALID_FREQUENCIES.has(i.frequency) &&
+        ISO_DATE.test(i.startDate) &&
+        (i.endDate === null || ISO_DATE.test(i.endDate)) &&
+        typeof i.active === 'boolean' &&
+        (i.taxRate === null || isFiniteNumber(i.taxRate, 0, 100)),
+    )
+  )
+    return 'Backup income is invalid';
+  if (
+    !data.expenses.every(
+      (e) =>
+        isRecord(e) &&
+        isString(e.id) &&
+        isString(e.name) &&
+        isFiniteNumber(e.amount, 0) &&
+        isString(e.categoryId) &&
+        VALID_FREQUENCIES.has(e.frequency) &&
+        VALID_ENTRY_MODES.has(e.entryMode) &&
+        ISO_DATE.test(e.startDate) &&
+        (e.endDate === null || ISO_DATE.test(e.endDate)) &&
+        typeof e.active === 'boolean' &&
+        typeof e.paused === 'boolean',
+    )
+  )
+    return 'Backup expenses are invalid';
+  if (
+    !data.categories.every(
+      (c) =>
+        isRecord(c) &&
+        isString(c.id) &&
+        isString(c.name) &&
+        isString(c.icon) &&
+        HEX_COLOR.test(c.color) &&
+        Array.isArray(c.subcategories) &&
+        c.subcategories.every((s) => isString(s)) &&
+        typeof c.isDefault === 'boolean' &&
+        Number.isInteger(c.sortOrder),
+    )
+  )
+    return 'Backup categories are invalid';
+  if (
+    !data.scenarios.every(
+      (s) =>
+        isRecord(s) &&
+        isString(s.id) &&
+        isString(s.name) &&
+        (s.type === 'loan' || s.type === 'general') &&
+        isLoanDetails(s.loanDetails) &&
+        Array.isArray(s.removedExpenseIds) &&
+        s.removedExpenseIds.every((id) => isString(id)) &&
+        Array.isArray(s.removedIncomeIds) &&
+        s.removedIncomeIds.every((id) => isString(id)) &&
+        Array.isArray(s.additionalExpenses) &&
+        s.additionalExpenses.every(isScenarioExpense),
+    )
+  )
+    return 'Backup scenarios are invalid';
+  if (
+    !isString(data.settings.currency, 5) ||
+    !isString(data.settings.currencySymbol, 3) ||
+    !VALID_PERIODS.has(data.settings.defaultPeriod) ||
+    !VALID_THEMES.has(data.settings.theme) ||
+    !Number.isInteger(data.settings.financialYearStartMonth) ||
+    data.settings.financialYearStartMonth < 1 ||
+    data.settings.financialYearStartMonth > 12
+  )
+    return 'Backup settings are invalid';
+  if (
+    !data.networthHistory.every(
+      (n) =>
+        isRecord(n) &&
+        ISO_DATE.test(n.date) &&
+        isFiniteNumber(n.totalAssets) &&
+        isFiniteNumber(n.totalLiabilities) &&
+        isFiniteNumber(n.netWorth) &&
+        isRecord(n.breakdown) &&
+        Object.values(n.breakdown).every((v) => isFiniteNumber(v)),
+    )
+  )
+    return 'Backup net worth history is invalid';
+
+  const categoryIds = new Set(data.categories.map((c) => c.id));
+  if (data.expenses.some((e) => !categoryIds.has(e.categoryId))) {
+    return 'Backup contains expenses with unknown categories';
+  }
+  return null;
+}
 
 const router = Router();
 
@@ -560,7 +728,7 @@ router.get(
   '/api/backup',
   asyncHandler(async (_req, res) => {
     const backup = {
-      version: '1.0.0',
+      version: BACKUP_VERSION,
       exportedAt: new Date().toISOString(),
       accounts: (await readJSON('accounts.json')) || [],
       income: (await readJSON('income.json')) || [],
@@ -578,9 +746,8 @@ router.post(
   '/api/restore',
   asyncHandler(async (req, res) => {
     const data = req.body;
-    if (!data || !data.version) {
-      return res.status(400).json({ error: 'Invalid backup file' });
-    }
+    const validationError = validateBackup(data);
+    if (validationError) return res.status(400).json({ error: validationError });
 
     const sanitizeArray = (arr, allowedFields) => {
       if (!Array.isArray(arr)) return undefined;
@@ -591,39 +758,23 @@ router.post(
       });
     };
 
-    if (data.accounts) {
-      const sanitized = sanitizeArray(data.accounts, [...ACCOUNT_FIELDS, 'balanceHistory']);
-      if (sanitized) await writeJSON('accounts.json', sanitized);
-    }
-    if (data.income) {
-      const sanitized = sanitizeArray(data.income, INCOME_FIELDS);
-      if (sanitized) await writeJSON('income.json', sanitized);
-    }
-    if (data.expenses) {
-      const sanitized = sanitizeArray(data.expenses, EXPENSE_FIELDS);
-      if (sanitized) await writeJSON('expenses.json', sanitized);
-    }
-    if (data.categories) {
-      const sanitized = sanitizeArray(data.categories, [
-        ...CATEGORY_FIELDS,
-        'isDefault',
-        'sortOrder',
-      ]);
-      if (sanitized) await writeJSON('categories.json', sanitized);
-    }
-    if (data.scenarios) {
-      const sanitized = sanitizeArray(data.scenarios, SCENARIO_FIELDS);
-      if (sanitized) await writeJSON('scenarios.json', sanitized);
-    }
-    if (data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)) {
-      await writeJSON('settings.json', pick(data.settings, SETTINGS_FIELDS));
-    }
-    if (data.networthHistory && Array.isArray(data.networthHistory)) {
+    return withLock('restore', async () => {
       const NW_FIELDS = ['date', 'totalAssets', 'totalLiabilities', 'netWorth', 'breakdown'];
-      const sanitized = data.networthHistory.map((item) => pick(item, NW_FIELDS));
-      await writeJSON('networth-history.json', sanitized);
-    }
-    res.json({ success: true });
+      const entries = [
+        ['accounts.json', sanitizeArray(data.accounts, [...ACCOUNT_FIELDS, 'balanceHistory'])],
+        ['income.json', sanitizeArray(data.income, INCOME_FIELDS)],
+        ['expenses.json', sanitizeArray(data.expenses, EXPENSE_FIELDS)],
+        [
+          'categories.json',
+          sanitizeArray(data.categories, [...CATEGORY_FIELDS, 'isDefault', 'sortOrder']),
+        ],
+        ['scenarios.json', sanitizeArray(data.scenarios, SCENARIO_FIELDS)],
+        ['settings.json', pick(data.settings, SETTINGS_FIELDS)],
+        ['networth-history.json', data.networthHistory.map((item) => pick(item, NW_FIELDS))],
+      ];
+      await writeJSONBatch(entries);
+      res.json({ success: true });
+    });
   }),
 );
 

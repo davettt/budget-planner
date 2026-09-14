@@ -47,6 +47,7 @@ export default function Settings() {
           <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">Currency</h3>
           <div className="flex items-center gap-3">
             <input
+              aria-label="Currency code"
               type="text"
               value={settings.currency}
               onChange={(e) => update({ currency: e.target.value })}
@@ -54,6 +55,7 @@ export default function Settings() {
               maxLength={5}
             />
             <input
+              aria-label="Currency symbol"
               type="text"
               value={settings.currencySymbol}
               onChange={(e) => update({ currencySymbol: e.target.value })}
@@ -68,6 +70,7 @@ export default function Settings() {
             Default Display Period
           </h3>
           <select
+            aria-label="Default display period"
             value={settings.defaultPeriod}
             onChange={(e) => update({ defaultPeriod: e.target.value as DisplayPeriod })}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
@@ -85,6 +88,7 @@ export default function Settings() {
             Financial Year Starts
           </h3>
           <select
+            aria-label="Financial year start month"
             value={settings.financialYearStartMonth}
             onChange={(e) => update({ financialYearStartMonth: parseInt(e.target.value, 10) })}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"

@@ -187,12 +187,11 @@ const DEFAULT_SETTINGS = {
   financialYearStartMonth: 7,
 };
 
-const fileLocks = new Map();
+let mutationLock = Promise.resolve();
 
-function withLock(filename, fn) {
-  const prev = fileLocks.get(filename) || Promise.resolve();
-  const next = prev.then(fn, fn);
-  fileLocks.set(filename, next);
+function withLock(_filename, fn) {
+  const next = mutationLock.then(fn, fn);
+  mutationLock = next.catch(() => {});
   return next;
 }
 
@@ -224,6 +223,44 @@ export async function writeJSON(filename, data) {
   const tmpPath = filePath + '.tmp';
   await fs.writeFile(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
   await fs.rename(tmpPath, filePath);
+}
+
+export async function writeJSONBatch(entries) {
+  await ensureDataDir();
+  const transactionId = `${process.pid}.${Date.now()}`;
+  const prepared = [];
+
+  try {
+    for (const [filename, data] of entries) {
+      const filePath = path.join(DATA_DIR, filename);
+      const tmpPath = `${filePath}.restore.${transactionId}.tmp`;
+      const backupPath = `${filePath}.restore.${transactionId}.bak`;
+      await fs.writeFile(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
+      prepared.push({ filePath, tmpPath, backupPath, hadOriginal: false, installed: false });
+    }
+
+    for (const file of prepared) {
+      try {
+        await fs.rename(file.filePath, file.backupPath);
+        file.hadOriginal = true;
+      } catch (err) {
+        if (err.code !== 'ENOENT') throw err;
+      }
+      await fs.rename(file.tmpPath, file.filePath);
+      file.installed = true;
+    }
+  } catch (err) {
+    for (const file of [...prepared].reverse()) {
+      if (file.installed) await fs.unlink(file.filePath).catch(() => {});
+      if (file.hadOriginal) await fs.rename(file.backupPath, file.filePath).catch(() => {});
+      await fs.unlink(file.tmpPath).catch(() => {});
+    }
+    throw err;
+  }
+
+  await Promise.all(
+    prepared.map((file) => (file.hadOriginal ? fs.unlink(file.backupPath).catch(() => {}) : null)),
+  );
 }
 
 export async function getAccounts() {

@@ -1,13 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 
 import { useSettingsStore } from './stores/settingsStore';
-import Dashboard from './pages/Dashboard';
-import Accounts from './pages/Accounts';
-import Budget from './pages/Budget';
-import Affordability from './pages/Affordability';
-import Settings from './pages/Settings';
 import Nav from './components/Nav';
+
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Accounts = lazy(() => import('./pages/Accounts'));
+const Budget = lazy(() => import('./pages/Budget'));
+const Affordability = lazy(() => import('./pages/Affordability'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 declare const __APP_VERSION__: string;
 
@@ -58,14 +59,16 @@ export default function App() {
             to apply updates.
           </div>
         )}
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/accounts" element={<Accounts />} />
-          <Route path="/budget" element={<Budget />} />
-          <Route path="/affordability" element={<Affordability />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={<p className="text-center text-slate-400">Loading…</p>}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/accounts" element={<Accounts />} />
+            <Route path="/budget" element={<Budget />} />
+            <Route path="/affordability" element={<Affordability />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
         <Nav />
         <Link
           to="/settings"

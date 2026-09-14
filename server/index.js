@@ -13,7 +13,7 @@ if (fs.existsSync(envPath)) {
 import express from 'express';
 import cors from 'cors';
 import router from './router.js';
-import { PORT } from './config.js';
+import { HOST, PORT } from './config.js';
 
 let buildStale = false;
 try {
@@ -27,7 +27,34 @@ export function startServer(port) {
   const app = express();
   const resolvedPort = port || parseInt(process.env.PORT, 10) || PORT;
 
-  app.use(cors({ origin: `http://localhost:${resolvedPort}` }));
+  const allowedOrigins = new Set([
+    `http://localhost:${resolvedPort}`,
+    `http://127.0.0.1:${resolvedPort}`,
+  ]);
+  app.disable('x-powered-by');
+  app.use((req, res, next) => {
+    const host = req.headers.host;
+    if (host && host !== `localhost:${resolvedPort}` && host !== `127.0.0.1:${resolvedPort}`) {
+      return res.status(403).json({ error: 'Invalid host' });
+    }
+    res.set({
+      'Content-Security-Policy':
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+      'Referrer-Policy': 'no-referrer',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+    });
+    next();
+  });
+  app.use(
+    cors({
+      origin(origin, callback) {
+        callback(null, !origin || allowedOrigins.has(origin));
+      },
+    }),
+  );
   app.use(express.json({ limit: '10mb' }));
   app.get('/api/build-status', (_req, res) => {
     res.json({ stale: buildStale });
@@ -47,8 +74,8 @@ export function startServer(port) {
     res.sendFile(path.join(distPath, 'index.html'));
   });
 
-  const server = app.listen(resolvedPort, () => {
-    console.log(`Budget Planner running on http://localhost:${resolvedPort}`);
+  const server = app.listen(resolvedPort, HOST, () => {
+    console.log(`Budget Planner running on http://${HOST}:${resolvedPort}`);
   });
 
   return { app, server, port: resolvedPort };

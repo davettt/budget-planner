@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import type { Account, AccountType } from '../types';
+import { useDialog } from '../utils/useDialog';
 
 import ConfirmDialog from './ConfirmDialog';
 
@@ -36,6 +37,7 @@ export default function AccountForm({ account, onSave, onDelete, onClose }: Acco
     account?.creditLimit != null ? String(account.creditLimit) : '',
   );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { dialogRef, titleId } = useDialog(onClose);
 
   const showInterestRate =
     type === 'savings' || type === 'loan' || type === 'mortgage' || type === 'investment';
@@ -63,19 +65,27 @@ export default function AccountForm({ account, onSave, onDelete, onClose }: Acco
       onMouseDown={onClose}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-5 text-lg font-semibold text-slate-800 dark:text-slate-100">
+        <h2 id={titleId} className="mb-5 text-lg font-semibold text-slate-800 dark:text-slate-100">
           {account ? 'Edit Account' : 'Add Account'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+            <label
+              htmlFor="account-name"
+              className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+            >
               Account Name
             </label>
             <input
+              id="account-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -86,10 +96,14 @@ export default function AccountForm({ account, onSave, onDelete, onClose }: Acco
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+            <label
+              htmlFor="account-type"
+              className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+            >
               Type
             </label>
             <select
+              id="account-type"
               value={type}
               onChange={(e) => setType(e.target.value as AccountType)}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
@@ -103,10 +117,14 @@ export default function AccountForm({ account, onSave, onDelete, onClose }: Acco
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+            <label
+              htmlFor="account-balance"
+              className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+            >
               {type === 'credit-card' ? 'Current Balance Owing' : 'Current Balance'}
             </label>
             <input
+              id="account-balance"
               type="number"
               step="0.01"
               value={balance}
@@ -117,10 +135,14 @@ export default function AccountForm({ account, onSave, onDelete, onClose }: Acco
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+            <label
+              htmlFor="account-institution"
+              className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+            >
               Institution (optional)
             </label>
             <input
+              id="account-institution"
               type="text"
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
@@ -131,10 +153,14 @@ export default function AccountForm({ account, onSave, onDelete, onClose }: Acco
 
           {showInterestRate && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="account-interest-rate"
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Interest Rate % (annual)
               </label>
               <input
+                id="account-interest-rate"
                 type="number"
                 step="0.01"
                 value={interestRate}
@@ -147,10 +173,14 @@ export default function AccountForm({ account, onSave, onDelete, onClose }: Acco
 
           {showCreditLimit && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="account-credit-limit"
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Credit Limit
               </label>
               <input
+                id="account-credit-limit"
                 type="number"
                 step="0.01"
                 value={creditLimit}
@@ -163,10 +193,14 @@ export default function AccountForm({ account, onSave, onDelete, onClose }: Acco
 
           {showMonthlyFee && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor="account-monthly-fee"
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Monthly Fee (optional)
               </label>
               <input
+                id="account-monthly-fee"
                 type="number"
                 step="0.01"
                 value={monthlyFee}

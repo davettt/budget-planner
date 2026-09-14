@@ -41,7 +41,8 @@ Then open [http://localhost:3012](http://localhost:3012).
 
 ```bash
 npm run dev          # Vite dev server (proxies /api to :3012)
-npm run quality      # lint + format:check + type-check + security audit
+npm run test         # financial calculation regression tests
+npm run quality      # lint + format:check + type-check + tests + security audit
 npm run format       # auto-fix formatting
 ```
 
@@ -110,6 +111,19 @@ Assets (savings, transaction, investment, cash) minus liabilities (credit card, 
 
 All data is stored as JSON files in `local_data/` (gitignored). No database required.
 
+The server binds to `127.0.0.1` by default. If remote access is required, put it behind an
+authenticated HTTPS reverse proxy; do not expose port 3012 directly.
+
+Budget Planner makes estimates from the values entered by the user. Results are general
+information only and are not financial, credit, tax, or legal advice. Verify important decisions
+with the relevant lender or a qualified professional.
+
+See [PRIVACY.md](PRIVACY.md) for the local data-handling summary and [SECURITY.md](SECURITY.md) for
+supported deployment and vulnerability reporting.
+
 ## License
 
 MIT
+
+The MIT licence permits redistribution and resale. Commercial distributors who intend different
+customer terms should obtain legal advice and replace the licensing model deliberately.

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import type { Category } from '../types';
+import { useDialog } from '../utils/useDialog';
 
 import ConfirmDialog from './ConfirmDialog';
 
@@ -43,6 +44,7 @@ export default function CategoryManager({
   const [newColor, setNewColor] = useState('#94A3B8');
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+  const { dialogRef, titleId } = useDialog(onClose);
 
   const startEdit = (cat: Category) => {
     setEditingId(cat.id);
@@ -89,14 +91,19 @@ export default function CategoryManager({
       onMouseDown={onClose}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="mx-4 max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          <h2 id={titleId} className="text-lg font-semibold text-slate-800 dark:text-slate-100">
             Manage Categories
           </h2>
           <button
+            aria-label="Close category manager"
             onClick={onClose}
             className="text-slate-300 transition-colors hover:text-slate-500 dark:text-slate-500 dark:hover:text-slate-300"
           >
@@ -137,6 +144,8 @@ export default function CategoryManager({
                 <div className="flex flex-wrap gap-1">
                   {COLORS.map((c) => (
                     <button
+                      aria-label={`Use ${c} for ${cat.name}`}
+                      aria-pressed={editColor === c}
                       key={c}
                       onClick={() => setEditColor(c)}
                       className={`h-5 w-5 rounded-full border-2 ${editColor === c ? 'border-slate-800 dark:border-slate-200' : 'border-transparent'}`}
@@ -211,6 +220,8 @@ export default function CategoryManager({
             <div className="flex gap-1">
               {COLORS.slice(0, 5).map((c) => (
                 <button
+                  aria-label={`Use ${c} for new category`}
+                  aria-pressed={newColor === c}
                   key={c}
                   onClick={() => setNewColor(c)}
                   className={`h-4 w-4 rounded-full border-2 ${newColor === c ? 'border-slate-800 dark:border-slate-200' : 'border-transparent'}`}
@@ -220,6 +231,7 @@ export default function CategoryManager({
             </div>
           </div>
           <input
+            aria-label="New category name"
             type="text"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
