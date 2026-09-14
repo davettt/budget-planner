@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Automated unit and production-server smoke tests now run in local policy gates and GitHub Actions.
+- Standard GitHub CI, Dependabot, dependency, licence, secret, and static-analysis safeguards.
+
 ## [1.3.1] - 2026-06-21
 
 ### Fixed
