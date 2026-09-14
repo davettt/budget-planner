@@ -1,11 +1,5 @@
 export type AccountType =
-  | 'savings'
-  | 'transaction'
-  | 'credit-card'
-  | 'loan'
-  | 'mortgage'
-  | 'investment'
-  | 'cash';
+  'savings' | 'transaction' | 'credit-card' | 'loan' | 'mortgage' | 'investment' | 'cash';
 
 export interface BalanceEntry {
   date: string;
@@ -27,13 +21,7 @@ export interface Account {
 }
 
 export type Frequency =
-  | 'daily'
-  | 'weekly'
-  | 'fortnightly'
-  | 'monthly'
-  | 'quarterly'
-  | 'annually'
-  | 'one-off';
+  'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'annually' | 'one-off';
 
 export interface Income {
   id: string;

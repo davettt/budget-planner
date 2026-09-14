@@ -7,6 +7,10 @@
 - Automated unit and production-server smoke tests now run in local policy gates and GitHub Actions.
 - Standard GitHub CI, Dependabot, dependency, licence, secret, and static-analysis safeguards.
 
+### Fixed
+
+- Type definitions now use the formatting required by the pinned CI toolchain.
+
 ## [1.3.1] - 2026-06-21
 
 ### Fixed
